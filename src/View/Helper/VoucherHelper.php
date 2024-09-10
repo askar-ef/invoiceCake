@@ -11,9 +11,9 @@ class VoucherHelper extends Helper
     public function getVoucher($totalAmount): string
     {
         if ($totalAmount > 30000000) {
-            return 'Voucher Hotel Santika';
+            return 'Hotel Santika';
         } else {
-            return 'Voucher Belanja Indomaret';
+            return 'Indomaret';
         }
     }
 }

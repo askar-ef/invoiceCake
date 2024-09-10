@@ -41,5 +41,6 @@ class AppView extends View
     {
         parent::initialize();
         $this->loadHelper('Rupiah');
+        $this->loadHelper('Voucher');
     }
 }

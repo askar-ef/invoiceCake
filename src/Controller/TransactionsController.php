@@ -56,23 +56,6 @@ class TransactionsController extends AppController
      *
      * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
      */
-    // public function add()
-    // {
-    //     $transaction = $this->Transactions->newEmptyEntity();
-    //     if ($this->request->is('post')) {
-    //         $transaction->code = $this->TransactionCode->generateCode('INV');
-    //         $transaction = $this->Transactions->patchEntity($transaction, $this->request->getData());
-    //         if ($this->Transactions->save($transaction)) {
-    //             $this->Flash->success(__('The transaction has been saved.'));
-
-    //             return $this->redirect(['action' => 'index']);
-    //         }
-    //         $this->Flash->error(__('The transaction could not be saved. Please, try again.'));
-    //     }
-    //     $customers = $this->Transactions->Customers->find('list', ['limit' => 200])->all();
-    //     $this->set(compact('transaction', 'customers'));
-    // // }
-
     // ngisi dulu kolomnya
     // public function add()
     // {

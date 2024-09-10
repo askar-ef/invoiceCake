@@ -17,6 +17,7 @@
                     <th><?= $this->Paginator->sort('transaction_date') ?></th>
                     <th><?= $this->Paginator->sort('amount') ?></th>
                     <th><?= $this->Paginator->sort('code') ?></th>
+                    <th><?= $this->Paginator->sort('voucher') ?></th>
                     <th class="actions"><?= __('Actions') ?></th>
                 </tr>
             </thead>
@@ -28,6 +29,7 @@
                         <td><?= h($transaction->transaction_date) ?></td>
                         <td><?= $this->Rupiah->formatRupiah($transaction->amount) ?></td>
                         <td><?= h($transaction->code) ?></td>
+                        <td><?= $this->Voucher->getVoucher($transaction->amount) ?></td>
                         <td class="actions">
                             <?= $this->Html->link(__('View'), ['action' => 'view', $transaction->id]) ?>
                             <?= $this->Html->link(__('Edit'), ['action' => 'edit', $transaction->id]) ?>
