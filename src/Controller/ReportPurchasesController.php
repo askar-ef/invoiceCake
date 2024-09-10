@@ -66,7 +66,7 @@ class ReportPurchasesController extends AppController
         $sheet->getStyle('A5:C5')->getFont()->setBold(true);
 
         // Set column widths
-        $sheet->getColumnDimension('A')->setWidth(16);
+        $sheet->getColumnDimension('A')->setWidth(20);
         $sheet->getColumnDimension('B')->setWidth(20);
         $sheet->getColumnDimension('C')->setWidth(12);
 
@@ -124,7 +124,7 @@ class ReportPurchasesController extends AppController
         $sheet->getStyle('A4:C4')->getFont()->setBold(true);
 
         // Set column widths
-        $sheet->getColumnDimension('A')->setWidth(16);
+        $sheet->getColumnDimension('A')->setWidth(20);
         $sheet->getColumnDimension('B')->setWidth(20);
         $sheet->getColumnDimension('C')->setWidth(15);
 
