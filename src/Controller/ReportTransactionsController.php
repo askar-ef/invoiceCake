@@ -4,119 +4,162 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use Cake\Http\Response;
+use Cake\ORM\TableRegistry;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Writer\Html as HtmlWriter;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Laminas\Diactoros\Stream;
+
 class ReportTransactionsController extends AppController
 {
     public function index()
     {
         if ($this->request->is('post')) {
-            $company['name'] = $this->getRequest()->getSession()->read('Auth.company_name');
-            $company['address'] = $this->getRequest()->getSession()->read('Auth.company_address');
-            $table = $this->fetchTable('Transactions.Purchases');
-            $results = $table->find()
-                ->where(function ($exp, $q) {
-                    return $exp->between('purchase_date', $this->request->getData('start'), $this->request->getData('end'));
-                })
-                ->contain(['PurchaseDetails'])
-                ->order(['purchase_code' => 'asc'])
+            $startDate = $this->request->getData('startdate');
+            $endDate = $this->request->getData('enddate');
+            $format = $this->request->getData('format');
+
+            $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
+            $transactions = $transactionsTable->find()
+                ->where(['transaction_date >=' => $startDate, 'transaction_date <=' => $endDate])
+                ->contain(['Customers'])
                 ->all();
-            if (empty($results)) {
-                $this->Flash->set(__('Data tidak tersedia.'));
-                return $this->redirect(['action' => 'index']);
-            }
-            switch ($this->request->getData('type')) {
-                case 'html':
-                    $file = 'html';
-                    break;
-                case 'excel':
-                    $file = 'excel';
-                    break;
 
-                default:
-                    $file = 'html';
-                    break;
+            if ($format === 'excel') {
+                return $this->exportExcel($transactions, $startDate, $endDate);
+            } elseif ($format === 'html') {
+                return $this->exportHtml($transactions, $startDate, $endDate);
             }
-            $periode = date("d F Y", strtotime($this->request->getData('start'))) . ' - ' . date("d F Y", strtotime($this->request->getData('end')));
-            $this->set(compact('results', 'company', 'periode'));
-            $this->render($file);
         }
     }
-    /**
-     * View method
-     *
-     * @param string|null $id Report Transaction id.
-     * @return \Cake\Http\Response|null|void Renders view
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
-    public function view($id = null)
+
+    protected function exportExcel($transactions, $startDate, $endDate): Response
     {
-        $reportTransaction = $this->ReportTransactions->get($id, [
-            'contain' => [],
-        ]);
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
 
-        $this->set(compact('reportTransaction'));
-    }
+        // Set company name
+        $sheet->setCellValue('A1', 'Wahana Artha Group')
+            ->mergeCells('A1:D1');
+        $sheet->getStyle('A1:D1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1:D1')->getFont()->setBold(true)->setSize(14);
 
-    /**
-     * Add method
-     *
-     * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
-     */
-    public function add()
-    {
-        $reportTransaction = $this->ReportTransactions->newEmptyEntity();
-        if ($this->request->is('post')) {
-            $reportTransaction = $this->ReportTransactions->patchEntity($reportTransaction, $this->request->getData());
-            if ($this->ReportTransactions->save($reportTransaction)) {
-                $this->Flash->success(__('The report transaction has been saved.'));
+        // set filename
+        $sheet->setCellValue('A2', 'Transactions Report')
+            ->mergeCells('A2:D2');
+        $sheet->getStyle('A2:D2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2:D2')->getFont()->setSize(12);
 
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('The report transaction could not be saved. Please, try again.'));
-        }
-        $this->set(compact('reportTransaction'));
-    }
+        // Set period
+        $sheet->setCellValue('A3', "Period: $startDate to $endDate")
+            ->mergeCells('A3:D3');
+        $sheet->getStyle('A3:D3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A3:D3')->getFont()->setItalic(true);
 
-    /**
-     * Edit method
-     *
-     * @param string|null $id Report Transaction id.
-     * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
-    public function edit($id = null)
-    {
-        $reportTransaction = $this->ReportTransactions->get($id, [
-            'contain' => [],
-        ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $reportTransaction = $this->ReportTransactions->patchEntity($reportTransaction, $this->request->getData());
-            if ($this->ReportTransactions->save($reportTransaction)) {
-                $this->Flash->success(__('The report transaction has been saved.'));
+        // Set header
+        $sheet->setCellValue('A5', 'Customer Name');
+        $sheet->setCellValue('B5', 'Transaction Date');
+        $sheet->setCellValue('C5', 'Amount');
+        $sheet->setCellValue('D5', 'Code');
+        $sheet->getStyle('A5:D5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A5:D5')->getFont()->setBold(true);
 
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('The report transaction could not be saved. Please, try again.'));
-        }
-        $this->set(compact('reportTransaction'));
-    }
+        // Set column widths
+        $sheet->getColumnDimension('A')->setWidth(16);
+        $sheet->getColumnDimension('B')->setWidth(20);
+        $sheet->getColumnDimension('C')->setWidth(12);
+        $sheet->getColumnDimension('D')->setWidth(16);
 
-    /**
-     * Delete method
-     *
-     * @param string|null $id Report Transaction id.
-     * @return \Cake\Http\Response|null|void Redirects to index.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
-    public function delete($id = null)
-    {
-        $this->request->allowMethod(['post', 'delete']);
-        $reportTransaction = $this->ReportTransactions->get($id);
-        if ($this->ReportTransactions->delete($reportTransaction)) {
-            $this->Flash->success(__('The report transaction has been deleted.'));
-        } else {
-            $this->Flash->error(__('The report transaction could not be deleted. Please, try again.'));
+        // Set data
+        $row = 6;
+        foreach ($transactions as $transaction) {
+            $sheet->setCellValue("A{$row}", $transaction->customer->name);
+            $sheet->setCellValue("B{$row}", $transaction->transaction_date->format('Y-m-d H:i:s'));
+            $sheet->setCellValue("C{$row}", $transaction->amount);
+            $sheet->setCellValue("D{$row}", $transaction->code);
+            $row++;
         }
 
-        return $this->redirect(['action' => 'index']);
+        $writer = new Xlsx($spreadsheet);
+
+        ob_start();
+        $writer->save('php://output');
+        $excelOutput = ob_get_clean();
+
+        $response = $this->response->withType('xlsx');
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, $excelOutput);
+        rewind($stream);
+
+        $formattedStartDate = date('Ymd', strtotime($startDate));
+        $formattedEndDate = date('Ymd', strtotime($endDate));
+        $filename = "Transactions_Report_{$formattedStartDate}_to_{$formattedEndDate}.html";
+
+        return $response->withBody(new Stream($stream))
+            // ->withHeader('Content-Disposition', 'attachment; filename="transactions.xlsx"');
+            ->withHeader('Content-Disposition', "attachment; filename=\"{$filename}\".xlsx");
+    }
+
+    protected function exportHtml($transactions, $startDate, $endDate): Response
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set company name
+        $sheet->setCellValue('A1', 'Wahana Artha Group')
+            ->mergeCells('A1:D1');
+        $sheet->getStyle('A1:D1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1:D1')->getFont()->setBold(true)->setSize(14);
+
+        // Set period
+        $sheet->setCellValue('A2', "Period: $startDate to $endDate")
+            ->mergeCells('A2:D2');
+        $sheet->getStyle('A2:D2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2:D2')->getFont()->setItalic(true);
+
+        // Set header
+        $sheet->setCellValue('A4', 'Customer Name');
+        $sheet->setCellValue('B4', 'Transaction Date');
+        $sheet->setCellValue('C4', 'Amount');
+        $sheet->setCellValue('D4', 'Code');
+        $sheet->getStyle('A4:D4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A4:D4')->getFont()->setBold(true);
+
+        // Set column widths
+        $sheet->getColumnDimension('A')->setWidth(16);
+        $sheet->getColumnDimension('B')->setWidth(20);
+        $sheet->getColumnDimension('C')->setWidth(15);
+        $sheet->getColumnDimension('D')->setWidth(16);
+
+        // Set data
+        $row = 5;
+        foreach ($transactions as $transaction) {
+            $sheet->setCellValue("A{$row}", $transaction->customer->name);
+            $sheet->setCellValue("B{$row}", $transaction->transaction_date->format('Y-m-d H:i:s'));
+            $sheet->setCellValue("C{$row}", $transaction->amount);
+            $sheet->setCellValue("D{$row}", $transaction->code);
+            $row++;
+        }
+
+        $writer = new HtmlWriter($spreadsheet);
+
+        ob_start();
+        $writer->save('php://output');
+        $htmlOutput = ob_get_clean();
+
+        // Format dates for filename
+        $formattedStartDate = date('Ymd', strtotime($startDate));
+        $formattedEndDate = date('Ymd', strtotime($endDate));
+        $filename = "Transactions_Report_{$formattedStartDate}_to_{$formattedEndDate}.html";
+
+        $response = $this->response->withType('text/html');
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, $htmlOutput);
+        rewind($stream);
+
+        return $response->withBody(new Stream($stream))
+            ->withHeader('Content-Disposition', "attachment; filename=\"{$filename}\"");
     }
 }

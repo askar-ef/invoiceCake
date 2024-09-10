@@ -4,7 +4,7 @@
  * @var \App\View\AppView $this
  */
 ?>
-<h1>Download Purchases Report</h1>
+<h1>Download Transactions Report</h1>
 
 <?= $this->Form->create(null, ['type' => 'post']) ?>
 <?= $this->Form->control('startdate', ['label' => 'Start Date', 'type' => 'date']) ?>
