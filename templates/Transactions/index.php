@@ -7,7 +7,9 @@
 ?>
 <div class="transactions index content">
     <?= $this->Html->link(__('New Transaction'), ['action' => 'add'], ['class' => 'button float-right']) ?>
-    <h3><?= __('Transactions') ?></h3>
+    <!-- <h3><?= __('Transactions') ?></h3> -->
+    <!-- biar pake behavior aja sih ini -->
+    <h3><?= h($tableGreeting) ?></h3>
     <div class="table-responsive">
         <table>
             <thead>
@@ -17,7 +19,7 @@
                     <th><?= $this->Paginator->sort('transaction_date') ?></th>
                     <th><?= $this->Paginator->sort('amount') ?></th>
                     <th><?= $this->Paginator->sort('code') ?></th>
-                    <th><?= $this->Paginator->sort('voucher') ?></th>
+                    <th><?= $this->Paginator->sort('get voucher') ?></th>
                     <th class="actions"><?= __('Actions') ?></th>
                 </tr>
             </thead>

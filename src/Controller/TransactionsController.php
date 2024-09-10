@@ -32,7 +32,12 @@ class TransactionsController extends AppController
         ];
         $transactions = $this->paginate($this->Transactions);
 
-        $this->set(compact('transactions'));
+
+        $tableGreeting = $this->Transactions->greet('Transaction');
+
+        $this->set(compact('transactions', 'tableGreeting'));
+
+        // $this->set(compact('transactions'));
     }
 
     /**
