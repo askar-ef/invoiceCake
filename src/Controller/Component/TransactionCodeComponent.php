@@ -18,33 +18,19 @@ class TransactionCodeComponent extends Component
         $this->Transactions = TableRegistry::getTableLocator()->get('Transactions');
     }
 
-    public function generateCode(string $prefix = 'PRC', ?string $transactionDate = null): string
+    public function generateCode(string $prefix = 'PRC', string $transactionDate): string
     {
-        // Use the current date if no transaction date is provided
-        if (!$transactionDate) {
-            $transactionDate = date('Y-m-d H:i:s');
-        }
-
-        // Extract year and month from the transaction date
         $yearMonth = date('ym', strtotime($transactionDate));
 
-        // Find the last transaction code with the same prefix and year-month
         $lastTransaction = $this->Transactions->find('all', [
-            'conditions' => [
-                'code LIKE' => $prefix . $yearMonth . '%'
-            ],
+            'conditions' => ['code LIKE' => $prefix . $yearMonth . '%'],
             'order' => ['code' => 'DESC']
         ])->first();
 
-        // Determine the next sequence number
-        if ($lastTransaction) {
-            $lastSequence = (int)substr($lastTransaction->code, -4);
-            $nextSequence = str_pad((string)($lastSequence + 1), 4, '0', STR_PAD_LEFT);
-        } else {
-            $nextSequence = '0001';
-        }
+        $nextSequence = $lastTransaction ?
+            str_pad((string)((int)substr($lastTransaction->code, -4) + 1), 4, '0', STR_PAD_LEFT) :
+            '0001';
 
-        // Return the generated transaction code
         return $prefix . $yearMonth . $nextSequence;
     }
 }
