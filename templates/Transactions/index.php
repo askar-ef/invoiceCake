@@ -20,6 +20,8 @@
                     <th><?= $this->Paginator->sort('amount') ?></th>
                     <th><?= $this->Paginator->sort('code') ?></th>
                     <th><?= $this->Paginator->sort('get voucher') ?></th>
+                    <th><?= $this->Paginator->sort('created_by') ?></th>
+                    <th><?= $this->Paginator->sort('modified_by') ?></th>
                     <th class="actions"><?= __('Actions') ?></th>
                 </tr>
             </thead>
@@ -32,6 +34,8 @@
                         <td><?= $this->Rupiah->formatRupiah($transaction->amount) ?></td>
                         <td><?= h($transaction->code) ?></td>
                         <td><?= $this->Voucher->getVoucher($transaction->amount) ?></td>
+                        <td><?= $transaction->createdByUser ? h($transaction->createdByUser->email) : '' ?></td>
+                        <td><?= $transaction->modifiedByUser ? h($transaction->modifiedByUser->email) : '' ?></td>
                         <td class="actions">
                             <?= $this->Html->link(__('View'), ['action' => 'view', $transaction->id]) ?>
                             <?= $this->Html->link(__('Edit'), ['action' => 'edit', $transaction->id]) ?>

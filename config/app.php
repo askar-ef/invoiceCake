@@ -65,6 +65,13 @@ return [
             'templates' => [ROOT . DS . 'templates' . DS],
             'locales' => [RESOURCES . 'locales' . DS],
         ],
+        // session
+        'session' => [
+            'defaults' => 'php',
+            'timeout' => 30, // Waktu kedaluwarsa dalam menit
+            'cookieName' => 'CAKEPHP',
+            'cookieTimeout' => 1440, // Waktu kedaluwarsa cookie dalam menit
+        ],
     ],
 
     /*

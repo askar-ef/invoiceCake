@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use Cake\Event\EventInterface;
+use Cake\Log\Log;
+
 /**
  * Users Controller
  *
@@ -13,43 +16,62 @@ namespace App\Controller;
 class UsersController extends AppController
 {
 
-    public function beforeFilter(\Cake\Event\EventInterface $event)
+    public function beforeFilter(EventInterface $event)
     {
-        $this->Authentication->addUnauthenticatedActions(['login', 'add']);
-        parent::beforeFilter($event);
-        // Configure the login action to not require authentication, preventing
-        // the infinite redirect loop issue
         $this->Authentication->addUnauthenticatedActions(['login']);
+        parent::beforeFilter($event);
     }
 
     public function login()
     {
         $this->request->allowMethod(['get', 'post']);
         $result = $this->Authentication->getResult();
-        // regardless of POST or GET, redirect if user is logged in
+
         if ($result && $result->isValid()) {
-            // redirect to /articles after login success
+            $user = $result->getData();
+
+            // Tambahkan log untuk memeriksa data pengguna
+            Log::write('info', 'Authenticated user data: ' . json_encode($user));
+
+            // Ambil objek session dan simpan username/email ke dalam sesi
+            $session = $this->getRequest()->getSession();
+            $session->write('Auth.userEmail', $user->email);
+
+            // Tambahkan log untuk memeriksa apakah sesi berhasil dibuat
+            Log::write('info', 'Session created for email: ' . $user->email);
+
+            // Baca kembali seluruh nilai yang ada di sesi untuk verifikasi
+            $sessionData = $session->read();
+            Log::write('info', 'Complete session data: ' . json_encode($sessionData));
+
+            // Redirect setelah login berhasil
             $redirect = $this->request->getQuery('redirect', [
-                'controller' => 'Articles',
+                'controller' => 'Customers',
                 'action' => 'index',
             ]);
 
             return $this->redirect($redirect);
         }
-        // display error if user submitted and authentication failed
+
         if ($this->request->is('post') && !$result->isValid()) {
             $this->Flash->error(__('Invalid username or password'));
         }
     }
+
+
     public function logout()
     {
         $result = $this->Authentication->getResult();
-        // regardless of POST or GET, redirect if user is logged in
+
         if ($result && $result->isValid()) {
             $this->Authentication->logout();
+            $session = $this->getRequest()->getSession();
+            $session->delete('Auth.userEmail');
+
             return $this->redirect(['controller' => 'Users', 'action' => 'login']);
         }
     }
+
     /**
      * Index method
      *
@@ -59,8 +81,19 @@ class UsersController extends AppController
     {
         $users = $this->paginate($this->Users);
 
+        $session = $this->getRequest()->getSession();
+        $sessionUserName = $session->read('Auth.userEmail');
+
+        if ($sessionUserName) {
+            $this->Flash->success('Session username: ' . h($sessionUserName));
+        } else {
+            $this->Flash->info('No session username found.');
+        }
+
         $this->set(compact('users'));
     }
+
+
 
     /**
      * View method

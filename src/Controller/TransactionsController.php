@@ -28,7 +28,7 @@ class TransactionsController extends AppController
     public function index()
     {
         $this->paginate = [
-            'contain' => ['Customers'],
+            'contain' => ['Customers', 'CreatedByUsers', 'ModifiedByUsers'],
         ];
         $transactions = $this->paginate($this->Transactions);
 
@@ -50,45 +50,11 @@ class TransactionsController extends AppController
     public function view($id = null)
     {
         $transaction = $this->Transactions->get($id, [
-            'contain' => ['Customers'],
+            'contain' => ['Suppliers', 'CreatedByUsers', 'ModifiedByUsers'],
         ]);
 
         $this->set(compact('transaction'));
     }
-
-    /**
-     * Add method
-     *
-     * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
-     */
-    // ngisi dulu kolomnya
-    // public function add()
-    // {
-    //     $transaction = $this->Transactions->newEmptyEntity();
-    //     if ($this->request->is('post')) {
-    //         // Generate the transaction code
-    //         $transactionDate = $this->request->getData('transaction_date');
-    //         $transaction->code = $this->TransactionCode->generateCode('PRC', $transactionDate);
-
-    //         $transaction = $this->Transactions->patchEntity($transaction, $this->request->getData());
-
-    //         // Log the transaction data before saving
-    //         Log::write('debug', print_r($transaction, true));
-
-    //         if ($this->Transactions->save($transaction)) {
-    //             $this->Flash->success(__('The transaction has been saved.'));
-
-    //             return $this->redirect(['action' => 'index']);
-    //         }
-
-    //         // Log any errors if the save failed
-    //         Log::write('error', json_encode($transaction->getErrors()));
-
-    //         $this->Flash->error(__('The transaction could not be saved. Please, try again.'));
-    //     }
-    //     $customers = $this->Transactions->Customers->find('list', ['limit' => 200])->all();
-    //     $this->set(compact('transaction', 'customers'));
-    // }
 
     // langsung kirim aja gausa isi isi
     public function add()
@@ -97,12 +63,33 @@ class TransactionsController extends AppController
         if ($this->request->is('post')) {
             $data = $this->request->getData();
 
+            // unique code
             $transactionDate = $data['transaction_date'];
             $data['code'] = $this->TransactionCode->generateCode('PRC', $transactionDate);
 
             $transaction = $this->Transactions->patchEntity($transaction, $data);
 
-            Log::write('debug', print_r($transaction, true));
+            $userEmail = $this->request->getSession()->read('Auth.userEmail');
+
+            // Log::write('debug', print_r($transaction, true));
+
+            // Find the user ID based on the email
+            $user = $this->Transactions->Users->find('all', [
+                'conditions' => ['Users.email' => $userEmail],
+            ])->first();
+
+            // Ensure the user was found and set the created_by and modified_by fields
+            if ($user) {
+                $userId = $user->id;
+                $transaction->created_by = $userId;
+                $transaction->modified_by = $userId;
+            }
+
+            if ($this->Transactions->save($transaction)) {
+                $this->Flash->success(__('The transaction has been saved.'));
+                return $this->redirect(['action' => 'index']);
+            }
+            $this->Flash->error(__('The transaction could not be saved. Please, try again.'));
 
             if ($this->Transactions->save($transaction)) {
                 $this->Flash->success(__('The transaction has been saved.'));
@@ -110,7 +97,7 @@ class TransactionsController extends AppController
                 return $this->redirect(['action' => 'index']);
             }
 
-            Log::write('error', json_encode($transaction->getErrors()));
+            // Log::write('error', json_encode($transaction->getErrors()));
 
             $this->Flash->error(__('The transaction could not be saved. Please, try again.'));
         }
@@ -118,14 +105,6 @@ class TransactionsController extends AppController
         $this->set(compact('transaction', 'customers'));
     }
 
-
-    /**
-     * Edit method
-     *
-     * @param string|null $id Transaction id.
-     * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function edit($id = null)
     {
         $transaction = $this->Transactions->get($id, [
@@ -133,9 +112,23 @@ class TransactionsController extends AppController
         ]);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $transaction = $this->Transactions->patchEntity($transaction, $this->request->getData());
+
+            // Retrieve the user's email from the session
+            $userEmail = $this->request->getSession()->read('Auth.userEmail');
+
+            // Find the user ID based on the email
+            $user = $this->Transactions->Users->find('all', [
+                'conditions' => ['Users.email' => $userEmail],
+            ])->first();
+
+            // Ensure the user was found and set the modified_by field
+            if ($user) {
+                $userId = $user->id;
+                $transaction->modified_by = $userId;
+            }
+
             if ($this->Transactions->save($transaction)) {
                 $this->Flash->success(__('The transaction has been saved.'));
-
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('The transaction could not be saved. Please, try again.'));
@@ -144,13 +137,6 @@ class TransactionsController extends AppController
         $this->set(compact('transaction', 'customers'));
     }
 
-    /**
-     * Delete method
-     *
-     * @param string|null $id Transaction id.
-     * @return \Cake\Http\Response|null|void Redirects to index.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
