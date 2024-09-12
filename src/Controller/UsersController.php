@@ -7,17 +7,12 @@ namespace App\Controller;
 use Cake\Event\EventInterface;
 use Cake\Log\Log;
 
-/**
- * Users Controller
- *
- * @property \App\Model\Table\UsersTable $Users
- * @method \App\Model\Entity\User[]|\Cake\Datasource\ResultSetInterface paginate($object = null, array $settings = [])
- */
 class UsersController extends AppController
 {
 
     public function beforeFilter(EventInterface $event)
     {
+        // $this->Authentication->addUnauthenticatedActions(['login', 'add']);
         $this->Authentication->addUnauthenticatedActions(['login']);
         parent::beforeFilter($event);
     }
@@ -30,21 +25,20 @@ class UsersController extends AppController
         if ($result && $result->isValid()) {
             $user = $result->getData();
 
-            // Tambahkan log untuk memeriksa data pengguna
-            Log::write('info', 'Authenticated user data: ' . json_encode($user));
+            // // Tambahkan log untuk memeriksa data pengguna
+            // Log::write('info', 'Authenticated user data: ' . json_encode($user));
 
             // Ambil objek session dan simpan username/email ke dalam sesi
             $session = $this->getRequest()->getSession();
             $session->write('Auth.userEmail', $user->email);
 
-            // Tambahkan log untuk memeriksa apakah sesi berhasil dibuat
-            Log::write('info', 'Session created for email: ' . $user->email);
+            // // Tambahkan log untuk memeriksa apakah sesi berhasil dibuat
+            // Log::write('info', 'Session created for email: ' . $user->email);
 
-            // Baca kembali seluruh nilai yang ada di sesi untuk verifikasi
-            $sessionData = $session->read();
-            Log::write('info', 'Complete session data: ' . json_encode($sessionData));
+            // // Baca kembali seluruh nilai yang ada di sesi untuk verifikasi
+            // $sessionData = $session->read();
+            // Log::write('info', 'Complete session data: ' . json_encode($sessionData));
 
-            // Redirect setelah login berhasil
             $redirect = $this->request->getQuery('redirect', [
                 'controller' => 'Customers',
                 'action' => 'index',
@@ -71,12 +65,6 @@ class UsersController extends AppController
             return $this->redirect(['controller' => 'Users', 'action' => 'login']);
         }
     }
-
-    /**
-     * Index method
-     *
-     * @return \Cake\Http\Response|null|void Renders view
-     */
     public function index()
     {
         $users = $this->paginate($this->Users);
@@ -95,13 +83,6 @@ class UsersController extends AppController
 
 
 
-    /**
-     * View method
-     *
-     * @param string|null $id User id.
-     * @return \Cake\Http\Response|null|void Renders view
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function view($id = null)
     {
         $user = $this->Users->get($id, [
@@ -111,11 +92,7 @@ class UsersController extends AppController
         $this->set(compact('user'));
     }
 
-    /**
-     * Add method
-     *
-     * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
-     */
+
     public function add()
     {
         $user = $this->Users->newEmptyEntity();
@@ -131,13 +108,7 @@ class UsersController extends AppController
         $this->set(compact('user'));
     }
 
-    /**
-     * Edit method
-     *
-     * @param string|null $id User id.
-     * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
+
     public function edit($id = null)
     {
         $user = $this->Users->get($id, [
@@ -155,13 +126,7 @@ class UsersController extends AppController
         $this->set(compact('user'));
     }
 
-    /**
-     * Delete method
-     *
-     * @param string|null $id User id.
-     * @return \Cake\Http\Response|null|void Redirects to index.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
+
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);

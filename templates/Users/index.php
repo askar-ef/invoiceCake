@@ -5,9 +5,15 @@
  * @var iterable<\App\Model\Entity\User> $users
  */
 ?>
+
 <div class="users index content">
+    <!-- <?= $this->Html->link(__('Logout'), ['controller' => 'Users', 'action' => 'logout'], ['class' => 'button float-right', 'style' => 'margin-left: 10px;']) ?> -->
     <?= $this->Html->link(__('New User'), ['action' => 'add'], ['class' => 'button float-right']) ?>
+
+
+
     <h3><?= __('Users') ?></h3>
+
     <div class="table-responsive">
         <table>
             <thead>
