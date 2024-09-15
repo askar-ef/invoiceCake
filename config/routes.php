@@ -50,6 +50,9 @@ return function (RouteBuilder $routes): void {
      * `{action}` markers.
      */
     $routes->setRouteClass(DashedRoute::class);
+    $routes->connect('/company-reports/export-excel', ['controller' => 'CompanyReports', 'action' => 'exportExcel']);
+    $routes->connect('/company-reports/export-html', ['controller' => 'CompanyReports', 'action' => 'exportHtml']);
+
 
     $routes->scope('/', function (RouteBuilder $builder): void {
         /*
