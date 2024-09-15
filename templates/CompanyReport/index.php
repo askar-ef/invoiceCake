@@ -108,3 +108,16 @@
         </table>
     </div>
 </div>
+
+<!-- Load DataTables JS and CSS -->
+<?= $this->Html->css('https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css', ['block' => true]) ?>
+<?= $this->Html->script('https://code.jquery.com/jquery-3.5.1.min.js', ['block' => true]) ?>
+<?= $this->Html->script('https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js', ['block' => true]) ?>
+
+<!-- Initialize DataTables -->
+<?= $this->Html->scriptBlock('
+    $(document).ready(function() {
+        $("#transactionsTable").DataTable();
+        $("#purchasesTable").DataTable();
+    });
+', ['block' => true]) ?>
