@@ -45,7 +45,7 @@
                 ]) ?>
                 <?= $this->Form->submit(__('Export to HTML'), [
                     'name' => 'exportHtml',
-                    'class' => 'btn btn-success'
+                    'class' => 'btn btn-primary'
                 ]) ?>
             </div>
         </div>
