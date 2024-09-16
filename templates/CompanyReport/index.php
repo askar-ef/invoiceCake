@@ -12,7 +12,7 @@
 
     <!-- Form to choose the start and end dates -->
     <?= $this->Form->create(null, ['url' => ['action' => 'index'], 'class' => 'mb-4']) ?>
-    <div class="row">
+    <div class="row mb-2">
         <div class="col-md-4">
             <div class="form-group">
                 <label for="start-date" class="form-label"><?= __('Start Date') ?>:</label>
@@ -37,15 +37,17 @@
                 ]) ?>
             </div>
         </div>
-        <div class="col-md-4">
-            <?= $this->Form->submit(__('Export to Excel'), [
-                'name' => 'exportExcel',
-                'class' => 'btn btn-primary me-2'
-            ]) ?>
-            <?= $this->Form->submit(__('Export to HTML'), [
-                'name' => 'exportHtml',
-                'class' => 'btn btn-success'
-            ]) ?>
+        <div class="col-md-4 d-flex justify-content-end align-items-end">
+            <div class="btn-group">
+                <?= $this->Form->submit(__('Export to Excel'), [
+                    'name' => 'exportExcel',
+                    'class' => 'btn btn-primary me-2'
+                ]) ?>
+                <?= $this->Form->submit(__('Export to HTML'), [
+                    'name' => 'exportHtml',
+                    'class' => 'btn btn-success'
+                ]) ?>
+            </div>
         </div>
     </div>
     <?= $this->Form->end() ?>
@@ -109,15 +111,17 @@
     </div>
 </div>
 
-<!-- Load DataTables JS and CSS -->
-<?= $this->Html->css('https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css', ['block' => true]) ?>
-<?= $this->Html->script('https://code.jquery.com/jquery-3.5.1.min.js', ['block' => true]) ?>
-<?= $this->Html->script('https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js', ['block' => true]) ?>
+<!-- Load jQuery and DataTables JS -->
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
 
 <!-- Initialize DataTables -->
-<?= $this->Html->scriptBlock('
+<script>
     $(document).ready(function() {
-        $("#transactionsTable").DataTable();
-        $("#purchasesTable").DataTable();
+        // Initialize DataTables on both tables
+        $('#transactionsTable').DataTable();
+        $('#purchasesTable').DataTable();
     });
-', ['block' => true]) ?>
+</script>

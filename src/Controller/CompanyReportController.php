@@ -15,6 +15,7 @@ use Laminas\Diactoros\Stream;
  */
 class CompanyReportController extends AppController
 {
+    public function apalah() {}
     public function index()
     {
         $this->loadModel('Transactions');

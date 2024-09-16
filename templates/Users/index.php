@@ -6,6 +6,8 @@
  */
 ?>
 
+<?= $this->Html->css('https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.css', ['block' => true]) ?>
+
 <div class="users index content">
     <!-- <?= $this->Html->link(__('Logout'), ['controller' => 'Users', 'action' => 'logout'], ['class' => 'button float-right', 'style' => 'margin-left: 10px;']) ?> -->
     <?= $this->Html->link(__('New User'), ['action' => 'add'], ['class' => 'button float-right']) ?>
@@ -49,3 +51,6 @@
         <p><?= $this->Paginator->counter(__('Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total')) ?></p>
     </div>
 </div>
+
+
+<?= $this->Html->script('https://cdn.datatables.net/2.1.6/js/dataTables.js', ['block' => true]) ?>
